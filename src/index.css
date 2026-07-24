@@ -1,0 +1,154 @@
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Blink UI Theme CSS
+   REQUIRED for @blinkdotnew/ui components to render correctly.
+   BlinkUIProvider adds .theme-{name} + .dark/.light to <html>,
+   activating the matching CSS variable set below.
+   ───────────────────────────────────────────────────────────────────────────── */
+@import '@blinkdotnew/ui/styles';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  /* Full viewport chain so AppShell / Sidebar h-full + flex-1 SidebarContent work */
+  html {
+    height: 100%;
+  }
+
+  #root {
+    min-height: 100%;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  body {
+    min-height: 100%;
+    min-height: 100dvh;
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    letter-spacing: var(--tracking-normal);
+  }
+}
+
+/* ── iOS-inspired palette (unlayered, after utilities) ──────────────────────
+   Apple design language: #007AFF blue, #F2F2F7 bg, white cards, soft shadows.
+   ──────────────────────────────────────────────────────────────────────────── */
+:root {
+  /* iOS light palette */
+  --background: 240 24% 96%;             /* #F2F2F7 — iOS system background */
+  --foreground: 0 0% 0%;                 /* #000000 */
+  --card: 0 0% 100%;                      /* #FFFFFF — white cards */
+  --card-foreground: 0 0% 0%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 0%;
+  --primary: 211 100% 50%;                /* #007AFF — Apple blue */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 240 24% 96%;               /* #F2F2F7 */
+  --secondary-foreground: 0 0% 0%;
+  --muted: 240 17% 92%;
+  --muted-foreground: 240 4% 46%;         /* iOS secondary label */
+  --accent: 211 100% 50%;                 /* #007AFF */
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 84% 60%;               /* iOS red */
+  --destructive-foreground: 0 0% 100%;
+  --border: 240 13% 91%;                  /* iOS separator */
+  --input: 240 13% 91%;
+  --ring: 211 100% 50%;
+
+  --chart-1: 211 100% 50%;
+  --chart-2: 32 100% 50%;
+  --chart-3: 145 65% 42%;
+  --chart-4: 280 68% 60%;
+  --chart-5: 0 84% 60%;
+
+  --sidebar: 0 0% 100%;
+  --sidebar-foreground: 0 0% 0%;
+  --sidebar-primary: 211 100% 50%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 240 24% 96%;
+  --sidebar-accent-foreground: 0 0% 0%;
+  --sidebar-border: 240 13% 91%;
+  --sidebar-ring: 211 100% 50%;
+
+  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', sans-serif;
+  --font-serif: 'New York', 'Times New Roman', serif;
+  --font-mono: 'SF Mono', 'Menlo', monospace;
+
+  --shadow-2xs: 0 1px 2px hsl(0 0% 0% / 0.04);
+  --shadow-xs: 0 1px 3px hsl(0 0% 0% / 0.06);
+  --shadow-sm: 0 2px 8px hsl(0 0% 0% / 0.08);
+  --shadow: 0 4px 12px hsl(0 0% 0% / 0.08);
+  --shadow-md: 0 4px 16px hsl(0 0% 0% / 0.10);
+  --shadow-lg: 0 8px 24px hsl(0 0% 0% / 0.12);
+  --shadow-xl: 0 12px 32px hsl(0 0% 0% / 0.14);
+  --shadow-2xl: 0 20px 48px hsl(0 0% 0% / 0.18);
+
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+  --radius: 0.75rem;
+}
+
+:root.dark,
+.theme-linear.dark,
+.theme-glass.dark,
+.theme-midnight.dark,
+.theme-minimal.dark {
+  --background: 0 0% 0%;                 /* #000000 — iOS dark */
+  --foreground: 0 0% 100%;
+  --card: 0 0% 11%;                       /* #1C1C1E — iOS dark card */
+  --card-foreground: 0 0% 100%;
+  --popover: 0 0% 17%;
+  --popover-foreground: 0 0% 100%;
+  --primary: 211 100% 60%;                /* Brighter blue for dark */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 0% 17%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 0 0% 22%;
+  --muted-foreground: 240 4% 60%;
+  --accent: 211 100% 60%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 0 0% 22%;
+  --input: 0 0% 22%;
+  --ring: 211 100% 60%;
+
+  --chart-1: 211 100% 60%;
+  --chart-2: 32 100% 55%;
+  --chart-3: 145 65% 52%;
+  --chart-4: 280 68% 70%;
+  --chart-5: 0 84% 65%;
+
+  --sidebar: 0 0% 11%;
+  --sidebar-foreground: 0 0% 100%;
+  --sidebar-primary: 211 100% 60%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 0 0% 22%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-border: 0 0% 22%;
+  --sidebar-ring: 211 100% 60%;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
