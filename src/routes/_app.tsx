@@ -50,26 +50,25 @@ function AppLayoutInner() {
 
   if (!user) return null
 
-  // Assistant route is fully self-contained: owns its own background image,
-  // flex layout, scroll container, and bottom spacing. Don't wrap it in
-  // min-h-dvh + pb-[76px] which causes a double bottom gap and black bar.
-  if (isAssistant) {
-    return (
-      <>
-        <Outlet />
-        <TabBar currentPath={currentPath} />
-      </>
-    )
-  }
-
+  // Single, stable tree shape across ALL routes (Assistant included) so
+  // TabBar never unmounts/remounts on navigation. TabBar always sits as the
+  // second child of the same wrapping element — only the first child (the
+  // page content) and that wrapper's className change. A remount used to
+  // reset TabBar's measured slider position back to 0, so the capsule
+  // visibly slid in from the left edge every time you switched into/out of
+  // Assistant. `contents` makes the wrapper invisible to layout on the
+  // Assistant route (equivalent to no wrapper at all — avoids the old
+  // double-bottom-gap/black-bar issue), while still being the same DOM node
+  // React reconciles across renders.
   return (
-    <div className="flex min-h-dvh flex-col bg-background">
-      {/* Page content */}
-      <main className="flex flex-col flex-1 min-h-0 overflow-y-auto pb-[76px]">
+    <div className={isAssistant ? 'contents' : 'flex min-h-dvh flex-col bg-background'}>
+      {isAssistant ? (
         <Outlet />
-      </main>
-
-      {/* Bottom tab bar — iOS style */}
+      ) : (
+        <main className="flex flex-col flex-1 min-h-0 overflow-y-auto pb-[76px]">
+          <Outlet />
+        </main>
+      )}
       <TabBar currentPath={currentPath} />
     </div>
   )
