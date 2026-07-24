@@ -79,11 +79,10 @@ export default defineConfig({
   },
   build: {
     // Build into a clean temp dir; scripts/finalize-static-build.mjs then flattens
-    // .vite-out/client/* -> dist/ so Blink hosting serves dist/index.html
-    // (BUILD_PATHS['vite-react'] = 'dist'). Building here instead of dist/ dodges the
-    // EACCES from Start's client build emptying the platform-prepared dist/, which
-    // pre-injects a read-only _redirects the sandbox user can't unlink.
-    outDir: 'dist',
+    // .vite-out/client/* -> dist/ so hosting serves dist/index.html.
+    // Building here instead of dist/ directly keeps this separate from the
+    // publish directory that finalize-static-build.mjs writes to.
+    outDir: '.vite-out',
     emptyOutDir: true,
   },
 });
