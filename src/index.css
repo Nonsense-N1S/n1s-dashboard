@@ -154,12 +154,7 @@
 }
 
 /* Safari/iOS paints autofilled inputs (saved email/password) with a yellow
-   background by default, which clashes with the dark glass UI. There's no
-   direct "disable autofill styling" API — the standard workaround is to
-   paint over it with a huge inset box-shadow matching our own background,
-   plus a multi-hour transition-delay so the yellow never has time to
-   render before this rule takes over. -webkit-text-fill-color (not `color`)
-   is required because autofill also locks the text color separately. */
+   background by default, which clashes with the dark glass UI. */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
