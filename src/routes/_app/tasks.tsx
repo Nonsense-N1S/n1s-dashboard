@@ -105,10 +105,9 @@ function TasksContent() {
 
   return (
     <PageBackground column>
-      {/* Header + add-task bar: wrapped together in one sticky block so the
-          input field stays pinned in place while the task list scrolls
-          underneath it, instead of scrolling away with the list. */}
-      <div className="sticky top-0 z-10" style={{ background: 'rgba(20,20,20,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+      {/* Header + add-task bar — true position:fixed, same mechanism as
+          TabBar, not sticky. */}
+      <div className="fixed inset-x-0 top-0 z-40" style={{ background: 'rgba(20,20,20,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
         <div className="px-4" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.75rem)', paddingBottom: '0.75rem' }}>
           <h1 className="text-base font-semibold tracking-tight text-white text-center">Задачи</h1>
         </div>
@@ -141,8 +140,8 @@ function TasksContent() {
         </form>
       </div>
 
-      {/* Task list */}
-      <div className="flex-1 px-4 pt-4 pb-4">
+      {/* Task list — top padding clears the now-fixed header+form block */}
+      <div className="flex-1 px-4 pb-4" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 8rem)' }}>
         {isLoading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
