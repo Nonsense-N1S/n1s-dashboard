@@ -105,38 +105,41 @@ function TasksContent() {
 
   return (
     <PageBackground column>
-      {/* Header */}
-      <header className="sticky top-0 z-10 px-4 py-3" style={{ background: 'rgba(20,20,20,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-        <h1 className="text-base font-semibold tracking-tight text-white text-center">Задачи</h1>
-      </header>
-
-      {/* Add new task */}
-      <form onSubmit={handleAdd} className="px-4 pt-4">
-        <div
-          className="flex items-center gap-2 rounded-xl px-3 py-2 transition-all"
-          style={{
-            background: 'rgba(40,40,40,0.35)',
-            backdropFilter: 'blur(22px)',
-            WebkitBackdropFilter: 'blur(22px)',
-            border: '1px solid rgba(255,255,255,0.10)',
-          }}
-        >
-          <input
-            type="text"
-            value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
-            placeholder="Добавить задачу..."
-            className="flex-1 bg-transparent text-sm text-white placeholder:text-white/35 focus:outline-none"
-          />
-          <button
-            type="submit"
-            disabled={adding || !newTitle.trim()}
-            className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-black transition-all hover:opacity-90 active:scale-95 disabled:opacity-30"
-          >
-            <Plus size={16} />
-          </button>
+      {/* Header + add-task bar: wrapped together in one sticky block so the
+          input field stays pinned in place while the task list scrolls
+          underneath it, instead of scrolling away with the list. */}
+      <div className="sticky top-0 z-10" style={{ background: 'rgba(20,20,20,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+        <div className="px-4" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.75rem)', paddingBottom: '0.75rem' }}>
+          <h1 className="text-base font-semibold tracking-tight text-white text-center">Задачи</h1>
         </div>
-      </form>
+
+        <form onSubmit={handleAdd} className="px-4 pb-3">
+          <div
+            className="flex items-center gap-2 rounded-xl px-3 py-2 transition-all"
+            style={{
+              background: 'rgba(40,40,40,0.35)',
+              backdropFilter: 'blur(22px)',
+              WebkitBackdropFilter: 'blur(22px)',
+              border: '1px solid rgba(255,255,255,0.10)',
+            }}
+          >
+            <input
+              type="text"
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              placeholder="Добавить задачу..."
+              className="flex-1 bg-transparent text-sm text-white placeholder:text-white/35 focus:outline-none"
+            />
+            <button
+              type="submit"
+              disabled={adding || !newTitle.trim()}
+              className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-black transition-all hover:opacity-90 active:scale-95 disabled:opacity-30"
+            >
+              <Plus size={16} />
+            </button>
+          </div>
+        </form>
+      </div>
 
       {/* Task list */}
       <div className="flex-1 px-4 pt-4 pb-4">
