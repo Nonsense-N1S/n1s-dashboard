@@ -2,10 +2,11 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useState, useRef, useEffect } from 'react'
 import { BlinkClientBoundary } from '@/components/BlinkClientBoundary'
 import { PageBackground } from '@/components/PageBackground'
-import { Send } from 'lucide-react'
+import { Send, Trash2 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { blink } from '@/blink/client'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from '@blinkdotnew/ui'
 
 export const Route = createFileRoute('/_app/assistant')({
   head: () => ({
@@ -54,6 +55,7 @@ interface ChatMessage {
  */
 const BOTTOM_SPACER_PX = 60
 const HEADER_HEIGHT_PX = 52
+const MAX_MESSAGES = 200
 
 function AssistantContent() {
   const { user } = useAuth()
@@ -81,6 +83,30 @@ function AssistantContent() {
       queryClient.invalidateQueries({ queryKey: ['chat-messages', user?.id] })
     },
   })
+
+  const clearMutation = useMutation({
+    mutationFn: async () => {
+      await Promise.all(messages.map((m) => chatTable.delete(m.id)))
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['chat-messages', user?.id] })
+      toast.success('История очищена')
+    },
+    onError: () => toast.error('Не удалось очистить историю'),
+  })
+
+  // Keep history bounded: once it grows past MAX_MESSAGES, silently delete
+  // the oldest overflow (messages are fetched oldest-first, so the extras
+  // are always at the START of the array). After deleting, invalidating the
+  // query refetches with the count back under the limit, so this doesn't
+  // loop — it just quietly trims one batch whenever the 201st message lands.
+  useEffect(() => {
+    if (messages.length <= MAX_MESSAGES) return
+    const overflow = messages.slice(0, messages.length - MAX_MESSAGES)
+    Promise.all(overflow.map((m) => chatTable.delete(m.id))).then(() => {
+      queryClient.invalidateQueries({ queryKey: ['chat-messages', user?.id] })
+    })
+  }, [messages])
 
   useEffect(() => {
     // Scroll the real scroll container to its true bottom: resting position
@@ -130,8 +156,10 @@ function AssistantContent() {
     <PageBackground>
       {/* Header */}
       <header
-        className="sticky top-0 z-10 px-4 py-3"
+        className="sticky top-0 z-10 relative px-4"
         style={{
+          paddingTop: 'calc(env(safe-area-inset-top) + 0.75rem)',
+          paddingBottom: '0.75rem',
           background: 'rgba(20,20,20,0.4)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
@@ -139,6 +167,21 @@ function AssistantContent() {
         }}
       >
         <h1 className="text-base font-semibold tracking-tight text-white text-center">Ассистент</h1>
+        {messages.length > 0 && (
+          <button
+            onClick={() => {
+              if (window.confirm('Удалить всю историю переписки? Это действие нельзя отменить.')) {
+                clearMutation.mutate()
+              }
+            }}
+            disabled={clearMutation.isPending}
+            aria-label="Очистить историю"
+            className="absolute right-4 flex h-7 w-7 items-center justify-center rounded-lg text-white/40 transition-colors hover:bg-red-500/15 hover:text-red-400 disabled:opacity-30"
+            style={{ top: 'calc(env(safe-area-inset-top) + 0.75rem)' }}
+          >
+            <Trash2 size={14} />
+          </button>
+        )}
       </header>
 
       {/* Messages: bottom-anchored; the static spacer at the end (plus
@@ -146,7 +189,7 @@ function AssistantContent() {
           above the fixed input at max scroll. */}
       <div
         className="flex flex-col justify-end space-y-4 px-4 pt-4"
-        style={{ minHeight: `calc(100dvh - ${HEADER_HEIGHT_PX}px)` }}
+        style={{ minHeight: `calc(100dvh - ${HEADER_HEIGHT_PX}px - env(safe-area-inset-top))` }}
       >
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
