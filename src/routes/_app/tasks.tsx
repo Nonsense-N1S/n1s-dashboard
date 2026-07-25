@@ -105,43 +105,48 @@ function TasksContent() {
 
   return (
     <PageBackground column>
-      {/* Header + add-task bar — true position:fixed, same mechanism as
-          TabBar, not sticky. */}
-      <div className="fixed inset-x-0 top-0 z-40" style={{ background: 'rgba(20,20,20,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-        <div className="px-4" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.75rem)', paddingBottom: '0.75rem' }}>
-          <h1 className="text-base font-semibold tracking-tight text-white text-center">Задачи</h1>
-        </div>
+      {/* Header — true position:fixed, own solid bar, same mechanism as TabBar */}
+      <header className="fixed inset-x-0 top-0 z-40 px-4" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.75rem)', paddingBottom: '0.75rem', background: 'rgba(20,20,20,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+        <h1 className="text-base font-semibold tracking-tight text-white text-center">Задачи</h1>
+      </header>
 
-        <form onSubmit={handleAdd} className="px-4 pb-3">
-          <div
-            className="flex items-center gap-2 rounded-xl px-3 py-2 transition-all"
-            style={{
-              background: 'rgba(40,40,40,0.35)',
-              backdropFilter: 'blur(22px)',
-              WebkitBackdropFilter: 'blur(22px)',
-              border: '1px solid rgba(255,255,255,0.10)',
-            }}
+      {/* Add-task input — its own SEPARATE floating fixed element (not glued
+          to the header bar), same idea as the clear-history button on the
+          Assistant page. Stays in place regardless of scroll. */}
+      <form
+        onSubmit={handleAdd}
+        className="fixed inset-x-0 z-40 px-4"
+        style={{ top: 'calc(env(safe-area-inset-top) + 3.25rem)' }}
+      >
+        <div
+          className="flex items-center gap-2 rounded-xl px-3 py-2 transition-all"
+          style={{
+            background: 'rgba(40,40,40,0.55)',
+            backdropFilter: 'blur(22px)',
+            WebkitBackdropFilter: 'blur(22px)',
+            border: '1px solid rgba(255,255,255,0.10)',
+            boxShadow: '0 6px 20px rgba(0,0,0,0.35)',
+          }}
+        >
+          <input
+            type="text"
+            value={newTitle}
+            onChange={(e) => setNewTitle(e.target.value)}
+            placeholder="Добавить задачу..."
+            className="flex-1 bg-transparent text-sm text-white placeholder:text-white/35 focus:outline-none"
+          />
+          <button
+            type="submit"
+            disabled={adding || !newTitle.trim()}
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-black transition-all hover:opacity-90 active:scale-95 disabled:opacity-30"
           >
-            <input
-              type="text"
-              value={newTitle}
-              onChange={(e) => setNewTitle(e.target.value)}
-              placeholder="Добавить задачу..."
-              className="flex-1 bg-transparent text-sm text-white placeholder:text-white/35 focus:outline-none"
-            />
-            <button
-              type="submit"
-              disabled={adding || !newTitle.trim()}
-              className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-black transition-all hover:opacity-90 active:scale-95 disabled:opacity-30"
-            >
-              <Plus size={16} />
-            </button>
-          </div>
-        </form>
-      </div>
+            <Plus size={16} />
+          </button>
+        </div>
+      </form>
 
-      {/* Task list — top padding clears the now-fixed header+form block */}
-      <div className="flex-1 px-4 pb-4" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 8rem)' }}>
+      {/* Task list — top padding clears both fixed elements above */}
+      <div className="flex-1 px-4 pb-4" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 7rem)' }}>
         {isLoading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
