@@ -63,13 +63,6 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(import.meta.dirname, './src'),
-      // Explicit alias so Rollup can always find these regardless of how
-      // node_modules gets laid out (legacy-peer-deps installs can nest
-      // packages differently than npm's default resolver, which broke
-      // Rollup's resolution of "react" from inside @tanstack/react-start's
-      // own generated entry file on some hosts).
-      react: path.resolve(import.meta.dirname, 'node_modules/react'),
-      'react-dom': path.resolve(import.meta.dirname, 'node_modules/react-dom'),
     },
     // @blinkdotnew/ui + framer-motion + R3F peers must share one React instance or hooks
     // crash inside motion with: Cannot read properties of null (reading 'useRef')
