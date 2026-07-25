@@ -15,7 +15,7 @@ export const Route = createRootRoute({
   head: () => ({
     meta: [
       { charSet: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1.0' },
+      { name: 'viewport', content: 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover' },
       { title: 'N1S — Personal Business Dashboard' },
       { name: 'description', content: 'Your essential dashboard for small business owners.' },
       { name: 'theme-color', content: '#000000' },
