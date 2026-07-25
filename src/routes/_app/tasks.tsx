@@ -226,7 +226,7 @@ function TaskRow({
 
       {/* Title */}
       <span
-        className={`flex-1 text-sm ${
+        className={`min-w-0 flex-1 break-words text-sm ${
           done ? 'text-white/35 line-through' : 'text-white/90'
         }`}
       >
@@ -236,7 +236,7 @@ function TaskRow({
       {/* Delete */}
       <button
         onClick={onDelete}
-        className="flex h-7 w-7 items-center justify-center rounded-lg text-white/40 opacity-0 transition-all hover:bg-red-500/15 hover:text-red-400 group-hover:opacity-100"
+        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-white/40 opacity-0 transition-all hover:bg-red-500/15 hover:text-red-400 group-hover:opacity-100"
       >
         <Trash2 size={14} />
       </button>
