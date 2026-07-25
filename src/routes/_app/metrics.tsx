@@ -218,7 +218,9 @@ function MetricsContent() {
 
   return (
     <PageBackground>
-      <DashboardRenderer config={buildConfig(data)} />
+      <div style={{ paddingTop: 'env(safe-area-inset-top)' }} className="pb-4">
+        <DashboardRenderer config={buildConfig(data)} />
+      </div>
     </PageBackground>
   )
 }
