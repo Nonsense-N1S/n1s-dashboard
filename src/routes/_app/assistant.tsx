@@ -170,7 +170,7 @@ function AssistantContent() {
           className="flex flex-1 flex-col justify-end space-y-4 px-4"
           style={{
             paddingTop: 'calc(env(safe-area-inset-top) + 3.5rem)',
-            paddingBottom: 'calc(76px + env(safe-area-inset-bottom, 0px))',
+            paddingBottom: 'calc(160px + env(safe-area-inset-bottom, 0px))',
           }}
         >
           {isLoading ? (
@@ -228,7 +228,7 @@ function AssistantContent() {
         onSubmit={handleSend}
         className="fixed inset-x-0 z-40 px-3"
         style={{
-          bottom: 'calc(env(safe-area-inset-bottom, 0px) + 92px)',
+          bottom: '92px',
         }}
       >
         <div
