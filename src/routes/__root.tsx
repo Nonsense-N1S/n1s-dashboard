@@ -15,7 +15,7 @@ export const Route = createRootRoute({
   head: () => ({
     meta: [
       { charSet: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1.0' },
+      { name: 'viewport', content: 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover' },
       { title: 'N1S — Personal Business Dashboard' },
       { name: 'description', content: 'Your essential dashboard for small business owners.' },
       { name: 'theme-color', content: '#000000' },
@@ -33,9 +33,9 @@ export const Route = createRootRoute({
     links: [
       { rel: 'stylesheet', href: indexCss },
       { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
-      { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
-      { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
-      { rel: 'manifest', href: '/site.webmanifest' },
+      { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico?v=2' },
+      { rel: 'apple-touch-icon', href: '/apple-touch-icon.png?v=2' },
+      { rel: 'manifest', href: '/site.webmanifest?v=2' },
     ],
   }),
   shellComponent: RootDocument,
