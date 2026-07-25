@@ -65,19 +65,14 @@ function LandingContent() {
 
   return (
     <div className="fixed inset-0 bg-black overflow-hidden">
-      {/* Fullscreen hero image */}
+      {/* Fullscreen hero image — CSS background instead of an <img> tag. */}
       <motion.div
-        className="absolute inset-0"
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: "url('/hero-statue.jpg')" }}
         initial={{ scale: 1.05 }}
         animate={ready ? { scale: 1 } : {}}
         transition={{ duration: 0.9, ease: easing }}
-      >
-        <img
-          src="/hero-statue.jpg"
-          alt=""
-          className="h-full w-full object-cover"
-        />
-      </motion.div>
+      />
 
       {/* Overlay — gradient from top to bottom for text legibility */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/15 to-black/30" />
@@ -197,7 +192,7 @@ function LandingContent() {
             type="submit"
             disabled={submitting}
             onClick={handleSubmit}
-            className="flex h-[52px] w-full items-center justify-center rounded-[14px] bg-[#1a1a1a] text-[15px] text-white transition-all hover:bg-black active:scale-[0.98] disabled:opacity-40"
+            className="flex h-[52px] w-full items-center justify-center rounded-[14px] bg-black text-[15px] text-white transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-40"
             style={{ fontWeight: 500 }}
           >
             {submitting ? 'Пожалуйста, подождите...' : mode === 'signin' ? 'Войти' : 'Создать аккаунт'}
@@ -206,7 +201,7 @@ function LandingContent() {
 
         {/* Toggle sign in / sign up */}
         <motion.div
-          className="shrink-0 px-5 sm:px-8 pb-[max(env(safe-area-inset-bottom,0px),28px)] pt-4 text-left"
+          className="shrink-0 px-5 sm:px-8 pb-[max(env(safe-area-inset-bottom,0px),28px)] pt-4 text-center"
           initial={{ opacity: 0 }}
           animate={ready ? { opacity: 1 } : {}}
           transition={{ duration: 0.9, ease: easing, delay: 0.7 }}
