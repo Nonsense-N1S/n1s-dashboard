@@ -65,7 +65,7 @@ function AppLayoutInner() {
       {isAssistant ? (
         <Outlet />
       ) : (
-        <main className="flex flex-col flex-1 min-h-0 overflow-y-auto pb-[76px]">
+        <main className="flex flex-col flex-1 min-h-0 overflow-y-auto pb-[76px] pt-[env(safe-area-inset-top)]">
           <Outlet />
         </main>
       )}
