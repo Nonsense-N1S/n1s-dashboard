@@ -40,7 +40,7 @@ function SettingsContent() {
   return (
     <PageBackground column>
       {/* Header */}
-      <header className="sticky top-0 z-10 px-4 py-3" style={{ background: 'rgba(20,20,20,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+      <header className="sticky top-0 z-10 px-4" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.75rem)', paddingBottom: '0.75rem', background: 'rgba(20,20,20,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
         <h1 className="text-base font-semibold tracking-tight text-white text-center">
           Настройки
         </h1>
