@@ -92,7 +92,7 @@ function AssistantContent() {
   }, [messages])
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' })
   }, [messages])
 
   const handleSend = async (e: React.FormEvent) => {
@@ -126,7 +126,6 @@ function AssistantContent() {
   return (
     <PageBackground>
       <div className="flex min-h-dvh flex-col">
-        {/* Header — true position:fixed, same mechanism as TabBar, not sticky */}
         <header
           className="fixed inset-x-0 top-0 z-40 px-4"
           style={{
@@ -141,7 +140,6 @@ function AssistantContent() {
           <h1 className="text-base font-semibold tracking-tight text-white text-center">Ассистент</h1>
         </header>
 
-        {/* Clear-history button — separate floating glass circle, fixed regardless of scroll */}
         {messages.length > 0 && (
           <button
             onClick={() => {
@@ -223,12 +221,11 @@ function AssistantContent() {
         </div>
       </div>
 
-      {/* Input — pinned to viewport bottom, above TabBar */}
       <form
         onSubmit={handleSend}
         className="fixed inset-x-0 z-40 px-3"
         style={{
-          bottom: '92px',
+          bottom: 'calc(env(safe-area-inset-bottom, 0px) + 92px)',
         }}
       >
         <div
