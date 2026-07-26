@@ -100,6 +100,19 @@ function AssistantContent() {
     el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
   }, [messages])
 
+  // Re-anchor to bottom whenever the real visible viewport settles (keyboard
+  // opening/closing shrinks/grows it). Without this, a scroll computed while
+  // the keyboard is still open/closing gets "stuck" at that stale height, so
+  // the rest point drifts upward a little more each time the keyboard toggles.
+  useEffect(() => {
+    const vv = window.visualViewport
+    const el = scrollContainerRef.current
+    if (!vv || !el) return
+    const reanchor = () => el.scrollTo({ top: el.scrollHeight, behavior: 'auto' })
+    vv.addEventListener('resize', reanchor)
+    return () => vv.removeEventListener('resize', reanchor)
+  }, [])
+
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault()
     const text = input.trim()
@@ -175,7 +188,7 @@ function AssistantContent() {
           className="flex-1 overflow-y-auto px-4"
           style={{
             paddingTop: 'calc(env(safe-area-inset-top) + 3.5rem)',
-            paddingBottom: 'calc(160px + env(safe-area-inset-bottom, 0px))',
+            paddingBottom: 'calc(152px + env(safe-area-inset-bottom, 0px))',
           }}
         >
           <div className="flex min-h-full flex-col justify-end space-y-4">
