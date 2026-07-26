@@ -4,7 +4,6 @@ import { useAuth } from '@/hooks/useAuth'
 import { useAppHeight } from '@/hooks/useAppHeight'
 import { BlinkClientBoundary } from '@/components/BlinkClientBoundary'
 import { TabBar } from '@/components/TabBar'
-import { TABBAR_CLEARANCE } from '@/lib/layout'
 
 export const Route = createFileRoute('/_app')({
   component: AppLayout,
@@ -56,7 +55,10 @@ function AppLayoutInner() {
       {isAssistant ? (
         <Outlet />
       ) : (
-        <main className="flex flex-col flex-1 min-h-0 overflow-y-auto" style={{ paddingBottom: TABBAR_CLEARANCE }}>
+        // Padding-bottom removed on purpose: content now scrolls all the way
+        // to the physical bottom edge and shows through TabBar's glass/blur,
+        // instead of stopping short above it.
+        <main className="flex flex-col flex-1 min-h-0 overflow-y-auto">
           <Outlet />
         </main>
       )}
