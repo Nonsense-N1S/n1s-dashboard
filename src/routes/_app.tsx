@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, useNavigate, useRouterState } from '@tanstack/react-router'
 import { useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
+import { useAppHeight } from '@/hooks/useAppHeight'
 import { BlinkClientBoundary } from '@/components/BlinkClientBoundary'
 import { TabBar } from '@/components/TabBar'
 import { TABBAR_CLEARANCE } from '@/lib/layout'
@@ -27,6 +28,10 @@ function AppLayout() {
 }
 
 function AppLayoutInner() {
+  // Keeps --app-height in sync with the real window height — see the hook's
+  // own comment for why dvh alone isn't enough in iOS standalone mode.
+  useAppHeight()
+
   const { user, isLoading } = useAuth()
   const navigate = useNavigate()
   const routerState = useRouterState()
@@ -54,7 +59,10 @@ function AppLayoutInner() {
   if (!user) return null
 
   return (
-    <div className={isAssistant ? 'contents' : 'flex h-dvh flex-col overflow-hidden bg-background'}>
+    <div
+      className={isAssistant ? 'contents' : 'flex flex-col overflow-hidden bg-background'}
+      style={isAssistant ? undefined : { height: 'var(--app-height, 100dvh)' }}
+    >
       {isAssistant ? (
         <Outlet />
       ) : (
