@@ -43,8 +43,23 @@ export const Route = createRootRoute({
 
 function RootDocument({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="light">
+    <html lang="en" className="light" suppressHydrationWarning>
       <head>
+        {/* Blocking script — deliberately NOT type="module"/async/defer, and
+            placed first so it runs before the browser paints anything.
+            Without it, <html> ships with the hardcoded className="light"
+            above, and BlinkUIProvider's darkMode="system" only flips it to
+            .dark inside a useEffect (after mount) — on a device in dark
+            mode that gap showed up as a flash of the light palette on every
+            page/tab open. `:root.dark` in index.css doesn't need any other
+            class alongside it, so just adding `dark` here is enough; the
+            suppressHydrationWarning above silences the (harmless, expected)
+            className mismatch this causes during hydration. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{if(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches){document.documentElement.classList.add('dark');}}catch(e){}})();`,
+          }}
+        />
         <HeadContent />
         <script
           type="application/ld+json"
