@@ -50,7 +50,7 @@ function AssistantContent() {
   const queryClient = useQueryClient()
   const [input, setInput] = useState('')
   const [isSending, setIsSending] = useState(false)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   const chatTable = blink.db.table<ChatMessage>('chat_messages')
 
@@ -91,8 +91,13 @@ function AssistantContent() {
     })
   }, [messages])
 
+  // Autoscroll: scroll the local messages container itself, not window/document.
+  // This is deterministic regardless of any fixed-positioning elsewhere on the
+  // page (which can silently break window.scrollTo / scrollIntoView).
   useEffect(() => {
-    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' })
+    const el = scrollContainerRef.current
+    if (!el) return
+    el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
   }, [messages])
 
   const handleSend = async (e: React.FormEvent) => {
@@ -125,7 +130,7 @@ function AssistantContent() {
 
   return (
     <PageBackground>
-      <div className="flex min-h-dvh flex-col">
+      <div className="flex h-dvh flex-col">
         <header
           className="fixed inset-x-0 top-0 z-40 px-4"
           style={{
@@ -164,60 +169,63 @@ function AssistantContent() {
           </button>
         )}
 
+        {/* Local scroll container — owns its own scroll, independent of window/body */}
         <div
-          className="flex flex-1 flex-col justify-end space-y-4 px-4"
+          ref={scrollContainerRef}
+          className="flex-1 overflow-y-auto px-4"
           style={{
             paddingTop: 'calc(env(safe-area-inset-top) + 3.5rem)',
             paddingBottom: 'calc(160px + env(safe-area-inset-bottom, 0px))',
           }}
         >
-          {isLoading ? (
-            <div className="flex items-center justify-center py-16">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-            </div>
-          ) : messages.length === 0 ? (
-            <div className="flex min-h-[40vh] flex-col items-center justify-center text-center px-4">
-              <div
-                className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full"
-                style={{ background: 'rgba(255,255,255,0.08)' }}
-              >
-                <svg className="h-8 w-8 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
-                </svg>
+          <div className="flex min-h-full flex-col justify-end space-y-4">
+            {isLoading ? (
+              <div className="flex items-center justify-center py-16">
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-white/30 border-t-white" />
               </div>
-              <h2 className="text-lg font-semibold tracking-tight text-white">AI Бизнес-ассистент</h2>
-              <p className="mt-2 max-w-xs text-sm leading-relaxed text-white/45">
-                Задайте вопрос о бизнесе — ассистент ответит здесь.
-              </p>
-            </div>
-          ) : (
-            messages.map((msg) => (
-              <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            ) : messages.length === 0 ? (
+              <div className="flex min-h-[40vh] flex-col items-center justify-center text-center px-4">
                 <div
-                  className="max-w-[80%] whitespace-pre-wrap break-words rounded-2xl px-4 py-3 text-sm leading-relaxed"
-                  style={
-                    msg.role === 'user'
-                      ? {
-                          background: 'rgba(255,255,255,0.92)',
-                          color: '#111',
-                          borderBottomRightRadius: '6px',
-                        }
-                      : {
-                          background: 'rgba(40,40,40,0.45)',
-                          backdropFilter: 'blur(18px)',
-                          WebkitBackdropFilter: 'blur(18px)',
-                          border: '1px solid rgba(255,255,255,0.10)',
-                          color: 'rgba(255,255,255,0.92)',
-                          borderBottomLeftRadius: '6px',
-                        }
-                  }
+                  className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full"
+                  style={{ background: 'rgba(255,255,255,0.08)' }}
                 >
-                  {msg.text}
+                  <svg className="h-8 w-8 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
+                  </svg>
                 </div>
+                <h2 className="text-lg font-semibold tracking-tight text-white">AI Бизнес-ассистент</h2>
+                <p className="mt-2 max-w-xs text-sm leading-relaxed text-white/45">
+                  Задайте вопрос о бизнесе — ассистент ответит здесь.
+                </p>
               </div>
-            ))
-          )}
-          <div ref={messagesEndRef} aria-hidden="true" />
+            ) : (
+              messages.map((msg) => (
+                <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div
+                    className="max-w-[80%] whitespace-pre-wrap break-words rounded-2xl px-4 py-3 text-sm leading-relaxed"
+                    style={
+                      msg.role === 'user'
+                        ? {
+                            background: 'rgba(255,255,255,0.92)',
+                            color: '#111',
+                            borderBottomRightRadius: '6px',
+                          }
+                        : {
+                            background: 'rgba(40,40,40,0.45)',
+                            backdropFilter: 'blur(18px)',
+                            WebkitBackdropFilter: 'blur(18px)',
+                            border: '1px solid rgba(255,255,255,0.10)',
+                            color: 'rgba(255,255,255,0.92)',
+                            borderBottomLeftRadius: '6px',
+                          }
+                    }
+                  >
+                    {msg.text}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </div>
 
@@ -225,7 +233,7 @@ function AssistantContent() {
         onSubmit={handleSend}
         className="fixed inset-x-0 z-40 px-3"
         style={{
-          bottom: 'calc(env(safe-area-inset-bottom, 0px) + 92px)',
+          bottom: 'calc(env(safe-area-inset-bottom, 0px) + 86px)',
         }}
       >
         <div
