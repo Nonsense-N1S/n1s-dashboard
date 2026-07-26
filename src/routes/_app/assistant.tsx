@@ -94,14 +94,30 @@ function AssistantContent() {
   }, [messages])
 
   // Autoscroll: scroll the local messages container itself, not window/document.
-  // The input is a normal in-flow flex child now (not position:fixed), so the
-  // browser already handles keyboard show/hide natively via `h-dvh` — this
-  // effect only needs to handle new messages arriving, nothing else.
-  useEffect(() => {
+  const scrollToBottom = (behavior: ScrollBehavior) => {
     const el = scrollContainerRef.current
     if (!el) return
-    el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
+    el.scrollTo({ top: el.scrollHeight, behavior })
+  }
+
+  useEffect(() => {
+    scrollToBottom('smooth')
   }, [messages])
+
+  // Re-anchor to bottom whenever the visible viewport's height changes (Safari's
+  // address-bar chrome collapsing/expanding, or the keyboard). Without this, the
+  // scroll position computed at one viewport size goes stale after a resize —
+  // the last message ends up short of the bottom instead of flush against it.
+  useEffect(() => {
+    const vv = window.visualViewport
+    const reanchor = () => scrollToBottom('auto')
+    vv?.addEventListener('resize', reanchor)
+    window.addEventListener('resize', reanchor)
+    return () => {
+      vv?.removeEventListener('resize', reanchor)
+      window.removeEventListener('resize', reanchor)
+    }
+  }, [])
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault()
