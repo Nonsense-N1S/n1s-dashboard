@@ -18,9 +18,13 @@ import type { ReactNode } from 'react'
  * A fixed, viewport-sized layer has neither problem: it is composited once,
  * never resized by content, and never repainted on scroll.
  *
- * The margin/padding pair (-76 / +76) keeps content clearing the floating
- * TabBar exactly as before. Do not change one without the other —
- * assistant.tsx's TABBAR_PAD constant relies on this same 76.
+ * NOTE: this used to carry an extra -76px/+76px margin/padding pair as a
+ * TabBar-clearance hack. Removed — it's now handled properly by `<main>`'s
+ * own `TABBAR_CLEARANCE` padding in `_app.tsx`, and with `<main>` now
+ * actually clipped (`overflow-y-auto` inside an `h-dvh`-capped wrapper,
+ * instead of letting the whole page grow past the viewport), that extra
+ * 76px stopped being invisible — it showed up as a real scrollable black
+ * strip past the fixed background layers.
  */
 export function PageBackground({
   children,
@@ -31,10 +35,7 @@ export function PageBackground({
   column?: boolean
 }) {
   return (
-    <div
-      className="relative min-h-dvh overflow-x-hidden"
-      style={{ marginBottom: '-76px', paddingBottom: '76px' }}
-    >
+    <div className="relative min-h-dvh overflow-x-hidden">
       {/* Viewport-sized image layer — painted behind everything on this page */}
       <div
         aria-hidden="true"
