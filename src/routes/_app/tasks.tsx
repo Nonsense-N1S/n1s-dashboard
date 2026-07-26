@@ -143,8 +143,8 @@ function TasksContent() {
         </div>
       </form>
 
-      {/* Task list — top padding clears both fixed elements above */}
-      <div className="flex-1 px-4 pb-4" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 8rem)' }}>
+      {/* Task list — top padding clears both fixed elements above, plus extra gap before first item */}
+      <div className="flex-1 px-4 pb-4" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 8.65rem)' }}>
         {isLoading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
