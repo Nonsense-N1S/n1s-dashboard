@@ -4,6 +4,8 @@ import { useAuth } from '@/hooks/useAuth'
 import { blink } from '@/blink/client'
 import { BlinkClientBoundary } from '@/components/BlinkClientBoundary'
 import { PageBackground } from '@/components/PageBackground'
+import { PageHeader } from '@/components/PageHeader'
+import { HEADER_CLEARANCE, GAP_PX } from '@/lib/layout'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Check, Trash2 } from 'lucide-react'
 import { toast } from '@blinkdotnew/ui'
@@ -105,16 +107,13 @@ function TasksContent() {
 
   return (
     <PageBackground column>
-      {/* Header — true position:fixed, own solid bar, same mechanism as TabBar */}
-      <header className="fixed inset-x-0 top-0 z-40 px-4" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.75rem)', paddingBottom: '0.75rem', background: 'rgba(20,20,20,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-        <h1 className="text-base font-semibold tracking-tight text-white text-center">Задачи</h1>
-      </header>
+      <PageHeader title="Задачи" />
 
-      {/* Add-task input — its own SEPARATE floating fixed element */}
+      {/* Add-task input — its own SEPARATE floating fixed element, one standard gap below the header */}
       <form
         onSubmit={handleAdd}
         className="fixed inset-x-0 z-40 px-4"
-        style={{ top: 'calc(env(safe-area-inset-top) + 4.25rem)' }}
+        style={{ top: `calc(${HEADER_CLEARANCE} + ${GAP_PX}px)` }}
       >
         <div
           className="flex items-center gap-2 rounded-xl px-3 py-2 transition-all"
@@ -143,8 +142,10 @@ function TasksContent() {
         </div>
       </form>
 
-      {/* Task list — top padding clears both fixed elements above, plus extra gap before first item */}
-      <div className="flex-1 px-4 pb-4" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 8.65rem)' }}>
+      {/* Task list — clears header + add-task pill + gap. The +74px is this
+          page's own floating input pill height + gap (not shared chrome,
+          so it's a local constant, not one from lib/layout). */}
+      <div className="flex-1 px-4 pb-4" style={{ paddingTop: `calc(${HEADER_CLEARANCE} + ${GAP_PX}px + 74px)` }}>
         {isLoading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
