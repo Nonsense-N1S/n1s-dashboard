@@ -2,6 +2,8 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useAuth } from '@/hooks/useAuth'
 import { BlinkClientBoundary } from '@/components/BlinkClientBoundary'
 import { PageBackground } from '@/components/PageBackground'
+import { PageHeader } from '@/components/PageHeader'
+import { HEADER_CLEARANCE, GAP_PX } from '@/lib/layout'
 import { LogOut, ChevronRight } from 'lucide-react'
 import { blink } from '@/blink/client'
 
@@ -39,15 +41,10 @@ function SettingsContent() {
 
   return (
     <PageBackground column>
-      {/* Header — true position:fixed, same mechanism as TabBar, not sticky */}
-      <header className="fixed inset-x-0 top-0 z-40 px-4" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.75rem)', paddingBottom: '0.75rem', background: 'rgba(20,20,20,0.4)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-        <h1 className="text-base font-semibold tracking-tight text-white text-center">
-          Настройки
-        </h1>
-      </header>
+      <PageHeader title="Настройки" />
 
-      {/* Content — top padding clears the now-fixed header */}
-      <div className="px-4 pb-6" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 4rem)' }}>
+      {/* Content — top padding clears the header + one standard gap */}
+      <div className="px-4 pb-6" style={{ paddingTop: `calc(${HEADER_CLEARANCE} + ${GAP_PX}px)` }}>
         {/* Profile section */}
         <div className="mb-6 flex items-center gap-4">
           <div className="flex h-14 w-14 items-center justify-center rounded-full text-lg font-semibold text-white" style={{ background: 'rgba(255,255,255,0.12)' }}>
