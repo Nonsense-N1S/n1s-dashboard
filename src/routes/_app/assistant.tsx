@@ -2,6 +2,8 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useState, useRef, useEffect } from 'react'
 import { BlinkClientBoundary } from '@/components/BlinkClientBoundary'
 import { PageBackground } from '@/components/PageBackground'
+import { PageHeader } from '@/components/PageHeader'
+import { HEADER_CLEARANCE, GAP_PX, TABBAR_CLEARANCE } from '@/lib/layout'
 import { Send, Trash2 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { blink } from '@/blink/client'
@@ -44,7 +46,6 @@ interface ChatMessage {
 }
 
 const MAX_MESSAGES = 200
-const REST_GAP_PX = 8 // ~2mm — desired gap between last message and top of input pill
 
 function AssistantContent() {
   const { user } = useAuth()
@@ -52,8 +53,6 @@ function AssistantContent() {
   const [input, setInput] = useState('')
   const [isSending, setIsSending] = useState(false)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
-  const inputFormRef = useRef<HTMLFormElement>(null)
-  const [bottomClearance, setBottomClearance] = useState(160) // fallback until first measurement
 
   const chatTable = blink.db.table<ChatMessage>('chat_messages')
 
@@ -94,41 +93,15 @@ function AssistantContent() {
     })
   }, [messages])
 
-  // Measure the real on-screen distance from viewport bottom to the top of the
-  // input pill, so the messages area's bottom padding always matches it exactly
-  // (plus a small rest gap) — no guessed pixel constant that can drift out of
-  // sync if the input's own size/position ever changes.
-  useEffect(() => {
-    const formEl = inputFormRef.current
-    if (!formEl) return
-    const measure = () => {
-      const rect = formEl.getBoundingClientRect()
-      const viewportH = window.visualViewport?.height ?? window.innerHeight
-      const distanceFromBottom = viewportH - rect.top
-      setBottomClearance(Math.max(0, distanceFromBottom + REST_GAP_PX))
-    }
-    measure()
-    const ro = new ResizeObserver(measure)
-    ro.observe(formEl)
-    window.addEventListener('resize', measure)
-    window.visualViewport?.addEventListener('resize', measure)
-    return () => {
-      ro.disconnect()
-      window.removeEventListener('resize', measure)
-      window.visualViewport?.removeEventListener('resize', measure)
-    }
-  }, [])
-
   // Autoscroll: scroll the local messages container itself, not window/document.
-  // This is deterministic regardless of any fixed-positioning elsewhere on the
-  // page (which can silently break window.scrollTo / scrollIntoView). Re-runs
-  // whenever the measured clearance changes too, so the rest point stays pinned
-  // to the input even right after a keyboard show/hide remeasure.
+  // The input is a normal in-flow flex child now (not position:fixed), so the
+  // browser already handles keyboard show/hide natively via `h-dvh` — this
+  // effect only needs to handle new messages arriving, nothing else.
   useEffect(() => {
     const el = scrollContainerRef.current
     if (!el) return
     el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
-  }, [messages, bottomClearance])
+  }, [messages])
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -160,20 +133,15 @@ function AssistantContent() {
 
   return (
     <PageBackground>
+      {/* Standard flex-column chat layout: header fixed on top (matches every
+          other page), messages take the remaining space and scroll locally,
+          input sits as a normal LAST FLEX CHILD — not position:fixed. This is
+          what makes the keyboard behavior "just work": h-dvh shrinks with the
+          keyboard, the column reflows, and the input (being in-flow) is
+          automatically pushed up above it by the browser. No JS measuring,
+          no manual scroll-position math. */}
       <div className="flex h-dvh flex-col">
-        <header
-          className="fixed inset-x-0 top-0 z-40 px-4"
-          style={{
-            paddingTop: 'calc(env(safe-area-inset-top) + 0.75rem)',
-            paddingBottom: '0.75rem',
-            background: 'rgba(20,20,20,0.4)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            borderBottom: '1px solid rgba(255,255,255,0.08)',
-          }}
-        >
-          <h1 className="text-base font-semibold tracking-tight text-white text-center">Ассистент</h1>
-        </header>
+        <PageHeader title="Ассистент" />
 
         {messages.length > 0 && (
           <button
@@ -186,7 +154,7 @@ function AssistantContent() {
             aria-label="Очистить историю"
             className="fixed z-40 flex h-10 w-10 items-center justify-center rounded-full text-white/80 transition-colors hover:text-red-400 disabled:opacity-30"
             style={{
-              top: 'calc(env(safe-area-inset-top) + 4.75rem)',
+              top: `calc(${HEADER_CLEARANCE} + ${GAP_PX}px)`,
               right: '1.1rem',
               background: 'rgba(70,70,70,0.65)',
               backdropFilter: 'blur(20px)',
@@ -203,12 +171,9 @@ function AssistantContent() {
         <div
           ref={scrollContainerRef}
           className="flex-1 overflow-y-auto px-4"
-          style={{
-            paddingTop: 'calc(env(safe-area-inset-top) + 3.5rem)',
-            paddingBottom: `${bottomClearance}px`,
-          }}
+          style={{ paddingTop: HEADER_CLEARANCE }}
         >
-          <div className="flex min-h-full flex-col justify-end space-y-4">
+          <div className="flex min-h-full flex-col justify-end space-y-4 pb-2">
             {isLoading ? (
               <div className="flex items-center justify-center py-16">
                 <div className="h-6 w-6 animate-spin rounded-full border-2 border-white/30 border-t-white" />
@@ -257,42 +222,43 @@ function AssistantContent() {
             )}
           </div>
         </div>
-      </div>
 
-      <form
-        ref={inputFormRef}
-        onSubmit={handleSend}
-        className="fixed inset-x-0 z-40 px-3"
-        style={{
-          bottom: 'calc(env(safe-area-inset-bottom, 0px) + 86px)',
-        }}
-      >
-        <div
-          className="mx-auto flex max-w-[560px] items-center gap-2 rounded-2xl px-3 py-1.5"
-          style={{
-            background: 'rgba(40,40,40,0.55)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255,255,255,0.12)',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
-          }}
+        {/* Input — normal flex child, NOT position:fixed. Sits directly above
+            the keyboard when open; when closed, its own bottom padding
+            (TABBAR_CLEARANCE, same constant TabBar itself is built from)
+            keeps it clear of the floating nav. */}
+        <form
+          onSubmit={handleSend}
+          className="shrink-0 px-3 pt-2"
+          style={{ paddingBottom: TABBAR_CLEARANCE }}
         >
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Сообщение..."
-            className="flex-1 bg-transparent py-1.5 text-sm text-white placeholder:text-white/35 focus:outline-none"
-          />
-          <button
-            type="submit"
-            disabled={!input.trim() || isSending}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-black transition-all hover:opacity-90 active:scale-95 disabled:opacity-30"
+          <div
+            className="mx-auto flex max-w-[560px] items-center gap-2 rounded-2xl px-3 py-1.5"
+            style={{
+              background: 'rgba(40,40,40,0.55)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+            }}
           >
-            <Send size={14} />
-          </button>
-        </div>
-      </form>
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Сообщение..."
+              className="flex-1 bg-transparent py-1.5 text-sm text-white placeholder:text-white/35 focus:outline-none"
+            />
+            <button
+              type="submit"
+              disabled={!input.trim() || isSending}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-black transition-all hover:opacity-90 active:scale-95 disabled:opacity-30"
+            >
+              <Send size={14} />
+            </button>
+          </div>
+        </form>
+      </div>
     </PageBackground>
   )
 }
