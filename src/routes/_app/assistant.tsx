@@ -153,8 +153,10 @@ function AssistantContent() {
           other page). Messages scroll in their own inner container. Input is
           now also true position:fixed (see comment further down) — anchored
           to the viewport bottom exactly like TabBar, using the same
-          TABBAR_CLEARANCE constant, instead of depending on h-dvh math. */}
-      <div className="flex h-dvh flex-col">
+          TABBAR_CLEARANCE constant, instead of depending on h-dvh math.
+          The wrapper itself now uses --app-height instead of h-dvh for the
+          same reason — see useAppHeight.ts. */}
+      <div className="flex flex-col" style={{ height: 'var(--app-height, 100dvh)' }}>
         <PageHeader title="Ассистент" />
 
         {messages.length > 0 && (
