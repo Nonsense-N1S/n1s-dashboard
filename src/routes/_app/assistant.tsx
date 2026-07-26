@@ -170,7 +170,7 @@ function AssistantContent() {
         {/* Local scroll container — owns its own scroll, independent of window/body */}
         <div
           ref={scrollContainerRef}
-          className="flex-1 overflow-y-auto px-4"
+          className="min-h-0 flex-1 overflow-y-auto px-4"
           style={{ paddingTop: HEADER_CLEARANCE }}
         >
           <div className="flex min-h-full flex-col justify-end space-y-4 pb-2">
