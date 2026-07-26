@@ -15,22 +15,31 @@
     @apply border-border;
   }
 
+  :root {
+    /* Real window height, kept live by useAppHeight() — falls back to dvh
+       before the hook's first effect runs (e.g. during SSR/prerender). See
+       PageBackground.tsx and _app.tsx for why dvh alone isn't reliable in
+       iOS standalone (Home Screen) mode. */
+    --app-height: 100dvh;
+  }
+
   html {
     height: 100%;
+    height: var(--app-height);
     overscroll-behavior: none;
     background: #000;
   }
 
   #root {
     min-height: 100%;
-    min-height: 100dvh;
+    min-height: var(--app-height);
     display: flex;
     flex-direction: column;
   }
 
   body {
     min-height: 100%;
-    min-height: 100dvh;
+    min-height: var(--app-height);
     overscroll-behavior: none;
     background: #000;
     @apply text-foreground;
