@@ -110,13 +110,11 @@ function TasksContent() {
         <h1 className="text-base font-semibold tracking-tight text-white text-center">Задачи</h1>
       </header>
 
-      {/* Add-task input — its own SEPARATE floating fixed element (not glued
-          to the header bar), same idea as the clear-history button on the
-          Assistant page. Stays in place regardless of scroll. */}
+      {/* Add-task input — its own SEPARATE floating fixed element */}
       <form
         onSubmit={handleAdd}
         className="fixed inset-x-0 z-40 px-4"
-        style={{ top: 'calc(env(safe-area-inset-top) + 3.25rem)' }}
+        style={{ top: 'calc(env(safe-area-inset-top) + 4.25rem)' }}
       >
         <div
           className="flex items-center gap-2 rounded-xl px-3 py-2 transition-all"
@@ -146,7 +144,7 @@ function TasksContent() {
       </form>
 
       {/* Task list — top padding clears both fixed elements above */}
-      <div className="flex-1 px-4 pb-4" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 7rem)' }}>
+      <div className="flex-1 px-4 pb-4" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 8rem)' }}>
         {isLoading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
