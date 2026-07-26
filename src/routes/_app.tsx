@@ -54,7 +54,7 @@ function AppLayoutInner() {
   if (!user) return null
 
   return (
-    <div className={isAssistant ? 'contents' : 'flex min-h-dvh flex-col bg-background'}>
+    <div className={isAssistant ? 'contents' : 'flex h-dvh flex-col overflow-hidden bg-background'}>
       {isAssistant ? (
         <Outlet />
       ) : (
