@@ -16,18 +16,26 @@
   }
 
   :root {
-    /* Real window height, kept live by useAppHeight() — falls back to dvh
-       before the hook's first effect runs (e.g. during SSR/prerender). See
-       PageBackground.tsx and _app.tsx for why dvh alone isn't reliable in
-       iOS standalone (Home Screen) mode. */
     --app-height: 100dvh;
   }
 
+  /* TEMPORARY DIAGNOSTIC — red, not #000.
+     Four CSS-level fixes for the bottom black strip have failed, including
+     `position: fixed; inset: 0`, which IS the viewport by definition. If a
+     strip survives that, the strip may not be inside the document at all.
+     This tells us definitively:
+       strip turns RED   -> it IS the document canvas; viewport is full-height
+                            and the gap is ours to fix in CSS.
+       strip stays BLACK -> it is outside the web content entirely (the native
+                            WKWebView isn't extending to the screen edge); no
+                            CSS can ever reach it — it's a meta/manifest/iOS
+                            level problem.
+     Revert both `background: red` back to `#000` once measured. */
   html {
     height: 100%;
     height: var(--app-height);
     overscroll-behavior: none;
-    background: #000;
+    background: red;
   }
 
   #root {
@@ -41,7 +49,7 @@
     min-height: 100%;
     min-height: var(--app-height);
     overscroll-behavior: none;
-    background: #000;
+    background: red;
     @apply text-foreground;
     font-family: var(--font-sans), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
     letter-spacing: var(--tracking-normal);
