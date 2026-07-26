@@ -192,7 +192,7 @@ function LandingContent() {
             type="submit"
             disabled={submitting}
             onClick={handleSubmit}
-            className="flex h-[52px] w-full items-center justify-center rounded-[14px] bg-black text-[15px] text-white transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-40"
+            className="flex h-[52px] w-full items-center justify-center rounded-[14px] bg-[#1a1a1a] text-[15px] text-white transition-all hover:bg-black active:scale-[0.98] disabled:opacity-40"
             style={{ fontWeight: 500 }}
           >
             {submitting ? 'Пожалуйста, подождите...' : mode === 'signin' ? 'Войти' : 'Создать аккаунт'}
@@ -201,7 +201,7 @@ function LandingContent() {
 
         {/* Toggle sign in / sign up */}
         <motion.div
-          className="shrink-0 px-5 sm:px-8 pb-[max(env(safe-area-inset-bottom,0px),28px)] pt-4 text-center"
+          className="shrink-0 px-5 sm:px-8 pb-[max(env(safe-area-inset-bottom,0px),28px)] pt-4 text-left"
           initial={{ opacity: 0 }}
           animate={ready ? { opacity: 1 } : {}}
           transition={{ duration: 0.9, ease: easing, delay: 0.7 }}
