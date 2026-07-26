@@ -130,7 +130,7 @@ function AssistantContent() {
     await addMessageMutation.mutateAsync({ role: 'user', text })
 
     try {
-      const response = await fetch('https://n1sense2.app.n8n.cloud/webhook/assistant-router', {
+      const response = await fetch('https://n1sense.app.n8n.cloud/webhook/assistant-router', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: user.email, message: text }),
