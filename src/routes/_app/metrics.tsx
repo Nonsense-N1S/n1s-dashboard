@@ -188,7 +188,7 @@ function MetricsContent() {
     queryKey: ['dashboard-data', user?.email],
     queryFn: async (): Promise<DashboardData> => {
       const response = await fetch(
-        `https://n1sense2.app.n8n.cloud/webhook/dashboard-router?email=${encodeURIComponent(user!.email)}`
+        `https://n1sense.app.n8n.cloud/webhook/dashboard-router?email=${encodeURIComponent(user!.email)}`
       )
       if (!response.ok) throw new Error(`Dashboard error: ${response.status}`)
       return response.json()
