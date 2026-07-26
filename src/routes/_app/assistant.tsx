@@ -134,12 +134,10 @@ function AssistantContent() {
   return (
     <PageBackground>
       {/* Standard flex-column chat layout: header fixed on top (matches every
-          other page), messages take the remaining space and scroll locally,
-          input sits as a normal LAST FLEX CHILD — not position:fixed. This is
-          what makes the keyboard behavior "just work": h-dvh shrinks with the
-          keyboard, the column reflows, and the input (being in-flow) is
-          automatically pushed up above it by the browser. No JS measuring,
-          no manual scroll-position math. */}
+          other page). Messages scroll in their own inner container. Input is
+          now also true position:fixed (see comment further down) — anchored
+          to the viewport bottom exactly like TabBar, using the same
+          TABBAR_CLEARANCE constant, instead of depending on h-dvh math. */}
       <div className="flex h-dvh flex-col">
         <PageHeader title="Ассистент" />
 
@@ -167,11 +165,13 @@ function AssistantContent() {
           </button>
         )}
 
-        {/* Local scroll container — owns its own scroll, independent of window/body */}
+        {/* Local scroll container — owns its own scroll, independent of window/body.
+            Bottom padding clears the now-fixed input pill below: TABBAR_CLEARANCE
+            (input's own bottom offset) + its own height (~56px) + one gap. */}
         <div
           ref={scrollContainerRef}
           className="min-h-0 flex-1 overflow-y-auto px-4"
-          style={{ paddingTop: HEADER_CLEARANCE }}
+          style={{ paddingTop: HEADER_CLEARANCE, paddingBottom: `calc(${TABBAR_CLEARANCE} + 56px + ${GAP_PX}px)` }}
         >
           <div className="flex min-h-full flex-col justify-end space-y-4 pb-2">
             {isLoading ? (
@@ -223,14 +223,18 @@ function AssistantContent() {
           </div>
         </div>
 
-        {/* Input — normal flex child, NOT position:fixed. Sits directly above
-            the keyboard when open; when closed, its own bottom padding
-            (TABBAR_CLEARANCE, same constant TabBar itself is built from)
-            keeps it clear of the floating nav. */}
+        {/* Input — TRUE position:fixed now, same anchoring mechanism as TabBar
+            itself (bottom:0 equivalent, via the shared TABBAR_CLEARANCE
+            constant used everywhere else in the app for this exact purpose).
+            Chosen over the in-flow/h-dvh approach because dvh recalculates
+            unreliably in iOS standalone (home-screen) mode, which was letting
+            an anchor-less in-flow input drift/feel draggable. Trade-off,
+            accepted deliberately: won't auto-slide above the keyboard the way
+            an in-flow element does. */}
         <form
           onSubmit={handleSend}
-          className="shrink-0 px-3 pt-2"
-          style={{ paddingBottom: TABBAR_CLEARANCE }}
+          className="fixed inset-x-0 z-40 px-3"
+          style={{ bottom: TABBAR_CLEARANCE }}
         >
           <div
             className="mx-auto flex max-w-[560px] items-center gap-2 rounded-2xl px-3 py-1.5"
