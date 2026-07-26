@@ -4,7 +4,6 @@ import { useAuth } from '@/hooks/useAuth'
 import { useAppHeight } from '@/hooks/useAppHeight'
 import { BlinkClientBoundary } from '@/components/BlinkClientBoundary'
 import { TabBar } from '@/components/TabBar'
-import { TABBAR_CLEARANCE } from '@/lib/layout'
 
 /**
  * Pathless layout route — wraps /app/* pages.
@@ -28,8 +27,6 @@ function AppLayout() {
 }
 
 function AppLayoutInner() {
-  // Keeps --app-height in sync with the real window height — see the hook's
-  // own comment for why dvh alone isn't enough in iOS standalone mode.
   useAppHeight()
 
   const { user, isLoading } = useAuth()
@@ -37,9 +34,6 @@ function AppLayoutInner() {
   const routerState = useRouterState()
   const currentPath = routerState.location.pathname
 
-  // Assistant manages its own full h-dvh layout + scroll container (its input
-  // is a normal in-flow flex child, not fixed, so it doesn't need <main>'s
-  // TabBar-clearance padding the way the other three pages do).
   const isAssistant = currentPath === '/assistant'
 
   useEffect(() => {
@@ -66,7 +60,10 @@ function AppLayoutInner() {
       {isAssistant ? (
         <Outlet />
       ) : (
-        <main className="flex flex-col flex-1 min-h-0 overflow-y-auto" style={{ paddingBottom: TABBAR_CLEARANCE }}>
+        // No overflow/scroll here anymore — PageBackground's own inner
+        // wrapper scrolls now, so its fixed bg layers are never nested
+        // inside a scrolling ancestor. This div only bounds the height.
+        <main className="flex flex-col flex-1 min-h-0">
           <Outlet />
         </main>
       )}
