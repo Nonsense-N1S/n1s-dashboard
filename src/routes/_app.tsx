@@ -4,7 +4,11 @@ import { useAuth } from '@/hooks/useAuth'
 import { useAppHeight } from '@/hooks/useAppHeight'
 import { BlinkClientBoundary } from '@/components/BlinkClientBoundary'
 import { TabBar } from '@/components/TabBar'
-import { TABBAR_CLEARANCE } from '@/lib/layout'
+
+/**
+ * Pathless layout route — wraps /app/* pages.
+ * Auth gate: unauthenticated users are redirected to /.
+ */
 
 export const Route = createFileRoute('/_app')({
   component: AppLayout,
@@ -56,7 +60,10 @@ function AppLayoutInner() {
       {isAssistant ? (
         <Outlet />
       ) : (
-        <main className="flex flex-col flex-1 min-h-0 overflow-y-auto" style={{ paddingBottom: TABBAR_CLEARANCE }}>
+        // No overflow/scroll here anymore — PageBackground's own inner
+        // wrapper scrolls now, so its fixed bg layers are never nested
+        // inside a scrolling ancestor. This div only bounds the height.
+        <main className="flex flex-col flex-1 min-h-0">
           <Outlet />
         </main>
       )}
