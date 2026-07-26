@@ -44,6 +44,7 @@ interface ChatMessage {
 }
 
 const MAX_MESSAGES = 200
+const REST_GAP_PX = 8 // ~2mm — desired gap between last message and top of input pill
 
 function AssistantContent() {
   const { user } = useAuth()
@@ -51,6 +52,8 @@ function AssistantContent() {
   const [input, setInput] = useState('')
   const [isSending, setIsSending] = useState(false)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const inputFormRef = useRef<HTMLFormElement>(null)
+  const [bottomClearance, setBottomClearance] = useState(160) // fallback until first measurement
 
   const chatTable = blink.db.table<ChatMessage>('chat_messages')
 
@@ -91,27 +94,41 @@ function AssistantContent() {
     })
   }, [messages])
 
+  // Measure the real on-screen distance from viewport bottom to the top of the
+  // input pill, so the messages area's bottom padding always matches it exactly
+  // (plus a small rest gap) — no guessed pixel constant that can drift out of
+  // sync if the input's own size/position ever changes.
+  useEffect(() => {
+    const formEl = inputFormRef.current
+    if (!formEl) return
+    const measure = () => {
+      const rect = formEl.getBoundingClientRect()
+      const viewportH = window.visualViewport?.height ?? window.innerHeight
+      const distanceFromBottom = viewportH - rect.top
+      setBottomClearance(Math.max(0, distanceFromBottom + REST_GAP_PX))
+    }
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(formEl)
+    window.addEventListener('resize', measure)
+    window.visualViewport?.addEventListener('resize', measure)
+    return () => {
+      ro.disconnect()
+      window.removeEventListener('resize', measure)
+      window.visualViewport?.removeEventListener('resize', measure)
+    }
+  }, [])
+
   // Autoscroll: scroll the local messages container itself, not window/document.
   // This is deterministic regardless of any fixed-positioning elsewhere on the
-  // page (which can silently break window.scrollTo / scrollIntoView).
+  // page (which can silently break window.scrollTo / scrollIntoView). Re-runs
+  // whenever the measured clearance changes too, so the rest point stays pinned
+  // to the input even right after a keyboard show/hide remeasure.
   useEffect(() => {
     const el = scrollContainerRef.current
     if (!el) return
     el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
-  }, [messages])
-
-  // Re-anchor to bottom whenever the real visible viewport settles (keyboard
-  // opening/closing shrinks/grows it). Without this, a scroll computed while
-  // the keyboard is still open/closing gets "stuck" at that stale height, so
-  // the rest point drifts upward a little more each time the keyboard toggles.
-  useEffect(() => {
-    const vv = window.visualViewport
-    const el = scrollContainerRef.current
-    if (!vv || !el) return
-    const reanchor = () => el.scrollTo({ top: el.scrollHeight, behavior: 'auto' })
-    vv.addEventListener('resize', reanchor)
-    return () => vv.removeEventListener('resize', reanchor)
-  }, [])
+  }, [messages, bottomClearance])
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -188,7 +205,7 @@ function AssistantContent() {
           className="flex-1 overflow-y-auto px-4"
           style={{
             paddingTop: 'calc(env(safe-area-inset-top) + 3.5rem)',
-            paddingBottom: 'calc(152px + env(safe-area-inset-bottom, 0px))',
+            paddingBottom: `${bottomClearance}px`,
           }}
         >
           <div className="flex min-h-full flex-col justify-end space-y-4">
@@ -243,6 +260,7 @@ function AssistantContent() {
       </div>
 
       <form
+        ref={inputFormRef}
         onSubmit={handleSend}
         className="fixed inset-x-0 z-40 px-3"
         style={{
