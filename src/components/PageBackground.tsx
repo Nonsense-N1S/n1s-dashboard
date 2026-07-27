@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
  * Shared page background for all app tabs (metrics / assistant / tasks / settings).
  *
  * The image + gradient live on `position: fixed` layers sized to the VIEWPORT,
- * not to the page content. This matters for three real bugs we hit:
+ * not to the page content. This matters for two real bugs we hit:
  *
  *  1. BLACK SCREEN on long pages (assistant): a scrolling `bg-cover`
  *     background is sized to the CONTAINER, and the container grows with
@@ -12,29 +12,18 @@ import type { ReactNode } from 'react'
  *     pixels tall — a huge dark blob — and with the black gradient on top
  *     the page looks like a black screen.
  *
- *  2. SCROLL LAG: the old `background-attachment: fixed` forces the browser
- *     to repaint the whole image on every scroll frame on mobile.
+ *  2. SCROLL LAG: `background-attachment: fixed` forces the browser to
+ *     repaint the whole image on every scroll frame on mobile.
  *
- *  3. BLACK STRIP at the bottom in iOS standalone (Home Screen) mode: WebKit
- *     under-reports viewport height in standalone display-mode — and NOT
- *     just for CSS `dvh`. `window.innerHeight` / `visualViewport.height`
- *     report the same short value to JS, so sizing these layers exactly to
- *     `--app-height` (see useAppHeight.ts) still left a gap on some devices.
- *     Fix: don't aim for an exact match — overshoot generously.
+ * A fixed, viewport-sized layer has neither problem: it is composited once,
+ * never resized by content, and never repainted on scroll.
  *
- * A fixed, viewport-sized layer has none of these problems: it is composited
- * once, never resized by content, and never repainted on scroll.
- *
- * NOTE: this used to carry an extra -76px/+76px margin/padding pair as a
- * TabBar-clearance hack. Removed — it's now handled properly by `<main>`'s
- * own `TABBAR_CLEARANCE` padding in `_app.tsx`, and with `<main>` now
- * actually clipped (`overflow-y-auto` inside an `h-dvh`-capped wrapper,
- * instead of letting the whole page grow past the viewport), that extra
- * 76px stopped being invisible — it showed up as a real scrollable black
- * strip past the fixed background layers.
+ * `inset-0` is correct here and needs no height arithmetic. An earlier round
+ * replaced it with `calc(var(--app-height) + 200px)` to chase the bottom black
+ * strip; that never helped, because the strip was caused by _app.tsx capping
+ * the shell's height, not by these layers being too short. Both the overshoot
+ * and the --app-height property are gone.
  */
-const OVERSHOOT_HEIGHT = 'calc(var(--app-height, 100dvh) + 200px)'
-
 export function PageBackground({
   children,
   column = false,
@@ -45,18 +34,19 @@ export function PageBackground({
 }) {
   return (
     <div className="relative min-h-dvh overflow-x-hidden">
+      {/* Viewport-sized image layer — painted behind everything on this page */}
       <div
         aria-hidden="true"
-        className="fixed top-0 left-0 right-0 bg-cover bg-center"
-        style={{ backgroundImage: "url('/dashboard-bg.jpg')", height: OVERSHOOT_HEIGHT }}
+        className="fixed inset-0 bg-cover bg-center"
+        style={{ backgroundImage: "url('/dashboard-bg.jpg')" }}
       />
+      {/* Viewport-sized gradient for text legibility */}
       <div
         aria-hidden="true"
-        className="fixed top-0 left-0 right-0 pointer-events-none"
+        className="fixed inset-0 pointer-events-none"
         style={{
           background:
             'linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.35) 40%, rgba(0,0,0,0.65) 100%)',
-          height: OVERSHOOT_HEIGHT,
         }}
       />
       <div className={column ? 'relative flex min-h-dvh flex-col' : 'relative'}>
