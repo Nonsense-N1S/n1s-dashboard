@@ -31,8 +31,8 @@ function AppLayoutInner() {
   const routerState = useRouterState()
   const currentPath = routerState.location.pathname
 
-  // Assistant builds its own h-dvh column (its message list and fixed input
-  // are page-specific), so it opts out of the shared <main> below.
+  // Assistant builds its own full-height column (its message list and fixed
+  // input are page-specific), so it opts out of the shared <main> below.
   const isAssistant = currentPath === '/assistant'
 
   useEffect(() => {
@@ -51,24 +51,25 @@ function AppLayoutInner() {
 
   if (!user) return null
 
-  // `h-dvh` makes <main>'s `flex-1 min-h-0 overflow-y-auto` an actual scroll
-  // container rather than decoration — all four tabs now scroll the same way,
-  // an inner container under fixed chrome.
-  // Deliberately NO `overflow-hidden`: an earlier revision paired that with a
-  // JS-measured `--app-height`, and that combination produced the bottom black
-  // strip. Plain `h-dvh` alone is fine — assistant.tsx has run it strip-free.
+  // `h-full`, NOT `h-dvh`. Both cap the shell to one screen so that <main>'s
+  // `flex-1 min-h-0 overflow-y-auto` becomes a real scroll container — but in
+  // iOS standalone `100dvh` measures SHORT of the physical screen, so capping
+  // by it leaves the black strip at the bottom. Same regression twice now:
+  // strip appeared under `h-dvh`, vanished under `min-h-dvh` (free to grow
+  // past the bad number), returned the moment `h-dvh` came back.
+  // `100%` chains from html/body instead, off the initial containing block,
+  // which with `viewport-fit=cover` really is the full screen.
   //
-  // <main> also carries NO bottom padding. It used to reserve TABBAR_CLEARANCE
-  // so content stopped above the floating TabBar, but once <main> became a real
+  // <main> carries no bottom padding. It used to reserve TABBAR_CLEARANCE so
+  // content stopped above the floating TabBar, but once <main> became a real
   // scroll container that reserved band read as a dead panel cutting the
-  // dashboard off short of the nav. Content now scrolls to the physical bottom
-  // edge and passes under TabBar's glass/blur, which is the point of the bar
-  // being translucent in the first place.
-  // Trade-off, deliberate: the very last row of a list ends up behind the bar
-  // at full scroll. If that becomes a problem, add the clearance as padding on
-  // the page's own content instead of re-clipping the whole scroll region.
+  // dashboard off short of the nav. Content now reaches the physical bottom
+  // edge and passes under TabBar's glass — which is the point of the bar being
+  // translucent. Trade-off, deliberate: the last row of a list sits behind the
+  // bar at full scroll; if that ever matters, add the clearance as padding on
+  // the page's own content rather than re-clipping the whole scroll region.
   return (
-    <div className={isAssistant ? 'contents' : 'flex h-dvh flex-col bg-background'}>
+    <div className={isAssistant ? 'contents' : 'flex h-full flex-col bg-background'}>
       {isAssistant ? (
         <Outlet />
       ) : (
