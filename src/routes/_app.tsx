@@ -3,7 +3,6 @@ import { useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { BlinkClientBoundary } from '@/components/BlinkClientBoundary'
 import { TabBar } from '@/components/TabBar'
-import { TABBAR_CLEARANCE } from '@/lib/layout'
 
 /**
  * Pathless layout route — wraps /app/* pages.
@@ -52,24 +51,28 @@ function AppLayoutInner() {
 
   if (!user) return null
 
-  // `h-dvh`, matching assistant.tsx's own shell — this is what makes <main>'s
-  // `flex-1 min-h-0 overflow-y-auto` an actual scroll container instead of
-  // decoration. With the previous `min-h-dvh` the shell grew with its content,
-  // so nothing ever overflowed <main> and the document scrolled instead:
-  // same visual result, different element, and the fixed header/accessories
-  // had no bounded region to sit against. Now all four tabs scroll the same
-  // way — an inner container under fixed chrome.
+  // `h-dvh` makes <main>'s `flex-1 min-h-0 overflow-y-auto` an actual scroll
+  // container rather than decoration — all four tabs now scroll the same way,
+  // an inner container under fixed chrome.
+  // Deliberately NO `overflow-hidden`: an earlier revision paired that with a
+  // JS-measured `--app-height`, and that combination produced the bottom black
+  // strip. Plain `h-dvh` alone is fine — assistant.tsx has run it strip-free.
   //
-  // Deliberately NO `overflow-hidden` here. An earlier revision paired that
-  // with a JS-measured `--app-height`, and the combination is what produced
-  // the bottom black strip; assistant.tsx has run plain `h-dvh` without
-  // `overflow-hidden` and no strip, which is the pattern being copied.
+  // <main> also carries NO bottom padding. It used to reserve TABBAR_CLEARANCE
+  // so content stopped above the floating TabBar, but once <main> became a real
+  // scroll container that reserved band read as a dead panel cutting the
+  // dashboard off short of the nav. Content now scrolls to the physical bottom
+  // edge and passes under TabBar's glass/blur, which is the point of the bar
+  // being translucent in the first place.
+  // Trade-off, deliberate: the very last row of a list ends up behind the bar
+  // at full scroll. If that becomes a problem, add the clearance as padding on
+  // the page's own content instead of re-clipping the whole scroll region.
   return (
     <div className={isAssistant ? 'contents' : 'flex h-dvh flex-col bg-background'}>
       {isAssistant ? (
         <Outlet />
       ) : (
-        <main className="flex flex-col flex-1 min-h-0 overflow-y-auto" style={{ paddingBottom: TABBAR_CLEARANCE }}>
+        <main className="flex flex-col flex-1 min-h-0 overflow-y-auto">
           <Outlet />
         </main>
       )}
