@@ -10,10 +10,9 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Plain height:100% — the old `--app-height` property (JS-measured, written
-   onto <html> by the now-deleted useAppHeight hook) under-reported the real
-   screen in iOS standalone mode and capped the document: that was the black
-   strip. No `#root` rule either — TanStack Start mounts straight into <body>. */
+/* height:100%, never dvh — in iOS standalone `100dvh` measures SHORT of the
+   physical screen, so anything hard-capped by it leaves a black strip at the
+   bottom. body needs a definite height so `h-full` on the shell resolves. */
 @layer base {
   * {
     @apply border-border;
@@ -26,7 +25,7 @@
   }
 
   body {
-    min-height: 100%;
+    height: 100%;
     overscroll-behavior: none;
     background: #000;
     @apply text-foreground;
