@@ -49,7 +49,6 @@ function TasksContent() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const [newTitle, setNewTitle] = useState('')
-  const [adding, setAdding] = useState(false)
 
   const tasksTable = blink.db.table<Task>('tasks')
 
@@ -63,42 +62,90 @@ function TasksContent() {
     enabled: !!user,
   })
 
+  // All three mutations are OPTIMISTIC: the cache is updated before the
+  // request leaves, so the UI reacts on the same frame as the tap.
+  //
+  // They used to be `mutationFn -> onSuccess: invalidateQueries`, which meant
+  // TWO sequential round-trips before anything appeared on screen: write, wait,
+  // then refetch the whole list and wait again. That is the "I press add and
+  // have to wait for the task to show up" lag — not rendering cost, just two
+  // network waits stacked in front of the user.
+  //
+  // Shape is React Query's standard rollback pattern: onMutate cancels
+  // in-flight refetches (so a slow older response can't clobber the optimistic
+  // state), snapshots the list, patches the cache, and hands the snapshot to
+  // onError to restore on failure. onSettled revalidates either way, which is
+  // what swaps the temporary id below for the real server record.
+  const listKey = ['tasks', user?.id]
+
   const createMutation = useMutation({
     mutationFn: (title: string) =>
       tasksTable.create({ title, userId: user!.id, isCompleted: '0' }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks', user?.id] })
-      setNewTitle('')
-      setAdding(false)
-      toast.success('Задача добавлена')
+    onMutate: async (title: string) => {
+      await queryClient.cancelQueries({ queryKey: listKey })
+      const previous = queryClient.getQueryData<Task[]>(listKey)
+      const optimistic: Task = {
+        // Temporary client-side id — replaced by the real row on onSettled's
+        // refetch. Prefixed so it's obvious in devtools if one ever sticks.
+        id: `optimistic-${Date.now()}`,
+        userId: user!.id,
+        title,
+        isCompleted: '0',
+        createdAt: new Date().toISOString(),
+      }
+      queryClient.setQueryData<Task[]>(listKey, (old = []) => [optimistic, ...old])
+      return { previous }
     },
-    onError: (err: any) => {
+    onError: (err: any, _title, context) => {
+      queryClient.setQueryData(listKey, context?.previous)
       toast.error(err?.message || 'Не удалось добавить задачу')
-      setAdding(false)
     },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: listKey }),
   })
 
   const toggleMutation = useMutation({
     mutationFn: ({ id, current }: { id: string; current: string }) =>
       tasksTable.update(id, { isCompleted: current === '1' ? '0' : '1' }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks', user?.id] }),
-    onError: () => toast.error('Не удалось обновить задачу'),
+    onMutate: async ({ id, current }: { id: string; current: string }) => {
+      await queryClient.cancelQueries({ queryKey: listKey })
+      const previous = queryClient.getQueryData<Task[]>(listKey)
+      const next = current === '1' ? '0' : '1'
+      queryClient.setQueryData<Task[]>(listKey, (old = []) =>
+        old.map((t) => (t.id === id ? { ...t, isCompleted: next } : t)),
+      )
+      return { previous }
+    },
+    onError: (_err, _vars, context) => {
+      queryClient.setQueryData(listKey, context?.previous)
+      toast.error('Не удалось обновить задачу')
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: listKey }),
   })
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => tasksTable.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks', user?.id] })
-      toast.success('Задача удалена')
+    onMutate: async (id: string) => {
+      await queryClient.cancelQueries({ queryKey: listKey })
+      const previous = queryClient.getQueryData<Task[]>(listKey)
+      queryClient.setQueryData<Task[]>(listKey, (old = []) => old.filter((t) => t.id !== id))
+      return { previous }
     },
-    onError: () => toast.error('Не удалось удалить задачу'),
+    onError: (_err, _id, context) => {
+      queryClient.setQueryData(listKey, context?.previous)
+      toast.error('Не удалось удалить задачу')
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: listKey }),
   })
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault()
     const title = newTitle.trim()
     if (!title) return
-    setAdding(true)
+    // Cleared before the request, not in onSuccess — the field emptying is the
+    // confirmation that the tap registered, and the task is already on screen
+    // by now anyway. Also doubles as the submit-button guard, which is why the
+    // old `adding` state is gone.
+    setNewTitle('')
     createMutation.mutate(title)
   }
 
@@ -134,7 +181,7 @@ function TasksContent() {
           />
           <button
             type="submit"
-            disabled={adding || !newTitle.trim()}
+            disabled={!newTitle.trim()}
             className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-black transition-all hover:opacity-90 active:scale-95 disabled:opacity-30"
           >
             <Plus size={16} />
