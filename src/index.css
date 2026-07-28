@@ -149,6 +149,38 @@
   }
 }
 
+/* Message bubble entry — WhatsApp-style: slides up a short distance while
+   fading in. 8px of travel and 220ms is deliberately restrained; more of
+   either starts reading as a transition rather than as the message simply
+   arriving, and it gets tiring at conversation pace.
+   `backwards` fill matters: without it the bubble paints at full opacity for
+   one frame before the animation starts, which shows up as a flicker.
+   Applied only to messages the client hasn't painted before (see
+   assistant.tsx's seenIdsRef) — animating the whole history on mount or after
+   a refetch looks like a bug, not like motion. */
+.animate-bubble-in {
+  animation: bubbleIn 0.22s ease-out backwards;
+}
+
+@keyframes bubbleIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Users who've asked the OS to reduce motion get the fade without the travel. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-bubble-in {
+    animation: fadeIn 0.15s ease-out backwards;
+  }
+}
+
 /* Safari/iOS paints autofilled inputs (saved email/password) with a yellow
    background by default, which clashes with the dark glass UI. */
 input:-webkit-autofill,
