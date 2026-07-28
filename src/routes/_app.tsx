@@ -32,9 +32,8 @@ function AppLayoutInner() {
   const routerState = useRouterState()
   const currentPath = routerState.location.pathname
 
-  // Assistant manages its own full h-dvh layout + scroll container (its input
-  // is fixed-positioned, so it doesn't need <main>'s TabBar-clearance padding
-  // the way the other three pages do).
+  // Assistant builds its own h-dvh column (its message list and fixed input
+  // are page-specific), so it opts out of the shared <main> below.
   const isAssistant = currentPath === '/assistant'
 
   useEffect(() => {
@@ -53,17 +52,20 @@ function AppLayoutInner() {
 
   if (!user) return null
 
-  // `min-h-dvh`, deliberately NOT `h-dvh` + `overflow-hidden`.
-  // The hard cap was added to stop the whole page being draggable, but it is
-  // what introduced the bottom black strip: it pins the shell to a height that
-  // stops short of the physical screen edge, and <html>'s #000 shows through
-  // below it. Everything layered on afterwards to compensate (the --app-height
-  // custom property fed by useAppHeight, a +200px background overshoot) was
-  // patching that cap rather than removing it. Removed.
-  // Known trade-off, accepted: the page may feel draggable again. That is the
-  // lesser problem and needs solving WITHOUT capping the shell's height.
+  // `h-dvh`, matching assistant.tsx's own shell — this is what makes <main>'s
+  // `flex-1 min-h-0 overflow-y-auto` an actual scroll container instead of
+  // decoration. With the previous `min-h-dvh` the shell grew with its content,
+  // so nothing ever overflowed <main> and the document scrolled instead:
+  // same visual result, different element, and the fixed header/accessories
+  // had no bounded region to sit against. Now all four tabs scroll the same
+  // way — an inner container under fixed chrome.
+  //
+  // Deliberately NO `overflow-hidden` here. An earlier revision paired that
+  // with a JS-measured `--app-height`, and the combination is what produced
+  // the bottom black strip; assistant.tsx has run plain `h-dvh` without
+  // `overflow-hidden` and no strip, which is the pattern being copied.
   return (
-    <div className={isAssistant ? 'contents' : 'flex min-h-dvh flex-col bg-background'}>
+    <div className={isAssistant ? 'contents' : 'flex h-dvh flex-col bg-background'}>
       {isAssistant ? (
         <Outlet />
       ) : (
