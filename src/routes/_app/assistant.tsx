@@ -53,6 +53,12 @@ function AssistantContent() {
   const [input, setInput] = useState('')
   const [isSending, setIsSending] = useState(false)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  // Ids that have already been painted at least once. Anything NOT in here on a
+  // given render is new and gets the entry animation; everything else renders
+  // static. Without this gate the whole history re-animates on every mount and
+  // after every refetch, which reads as a glitch rather than as motion.
+  // A ref, not state, on purpose: updating it must not itself trigger a render.
+  const seenIdsRef = useRef<Set<string>>(new Set())
 
   const chatTable = blink.db.table<ChatMessage>('chat_messages')
 
@@ -115,6 +121,14 @@ function AssistantContent() {
     Promise.all(overflow.map((m) => chatTable.delete(m.id))).then(() => {
       queryClient.invalidateQueries({ queryKey: ['chat-messages', user?.id] })
     })
+  }, [messages])
+
+  // Snapshot of what's new for THIS render, taken before the effect below marks
+  // anything as seen.
+  const isNewMessage = (id: string) => !seenIdsRef.current.has(id)
+
+  useEffect(() => {
+    messages.forEach((m) => seenIdsRef.current.add(m.id))
   }, [messages])
 
   // Autoscroll: scroll the local messages container itself, not window/document.
@@ -227,7 +241,7 @@ function AssistantContent() {
         <div
           ref={scrollContainerRef}
           className="min-h-0 flex-1 overflow-y-auto px-4"
-          style={{ paddingTop: HEADER_CLEARANCE, paddingBottom: `calc(${TABBAR_CLEARANCE} + 56px + ${GAP_PX - 26}px)` }}
+          style={{ paddingTop: HEADER_CLEARANCE, paddingBottom: `calc(${TABBAR_CLEARANCE} + 56px + ${GAP_PX - 10}px)` }}
         >
           <div className="flex min-h-full flex-col justify-end space-y-4 pb-2">
             {isLoading ? (
@@ -251,7 +265,12 @@ function AssistantContent() {
               </div>
             ) : (
               messages.map((msg) => (
-                <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div
+                  key={msg.id}
+                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} ${
+                    isNewMessage(msg.id) ? 'animate-bubble-in' : ''
+                  }`}
+                >
                   <div
                     className="max-w-[80%] whitespace-pre-wrap break-words rounded-2xl px-4 py-3 text-sm leading-relaxed"
                     style={
@@ -283,7 +302,7 @@ function AssistantContent() {
                 survive a refetch. Sits after the last bubble so the existing
                 autoscroll-on-messages effect keeps it in view. */}
             {isSending && (
-              <div className="flex justify-start">
+              <div className="flex justify-start animate-bubble-in">
                 <div
                   className="flex items-center gap-2 rounded-2xl px-4 py-3 text-sm"
                   style={{
