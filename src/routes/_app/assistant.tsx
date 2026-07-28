@@ -66,12 +66,36 @@ function AssistantContent() {
     enabled: !!user,
   })
 
+  const listKey = ['chat-messages', user?.id]
+
+  // OPTIMISTIC: the bubble is painted from cache before the write leaves, so
+  // your own message lands the instant you hit send. Previously this awaited
+  // the create AND a full list refetch before rendering anything — two network
+  // waits before you saw your own text, on top of the assistant's own think
+  // time. Standard React Query rollback shape: cancel in-flight refetches so a
+  // slow older response can't clobber the optimistic state, snapshot, patch,
+  // restore on error, revalidate either way (which swaps the temp id for the
+  // real row).
   const addMessageMutation = useMutation({
     mutationFn: ({ role, text }: { role: string; text: string }) =>
       chatTable.create({ userId: user!.id, role, text }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['chat-messages', user?.id] })
+    onMutate: async ({ role, text }: { role: string; text: string }) => {
+      await queryClient.cancelQueries({ queryKey: listKey })
+      const previous = queryClient.getQueryData<ChatMessage[]>(listKey)
+      const optimistic: ChatMessage = {
+        id: `optimistic-${Date.now()}`,
+        userId: user!.id,
+        role,
+        text,
+        createdAt: new Date().toISOString(),
+      }
+      queryClient.setQueryData<ChatMessage[]>(listKey, (old = []) => [...old, optimistic])
+      return { previous }
     },
+    onError: (_err, _vars, context) => {
+      queryClient.setQueryData(listKey, context?.previous)
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: listKey }),
   })
 
   const clearMutation = useMutation({
@@ -104,6 +128,13 @@ function AssistantContent() {
     scrollToBottom('smooth')
   }, [messages])
 
+  // The "Думает…" bubble mounts and unmounts outside the messages array, so the
+  // effect above never fires for it — without this it would appear below the
+  // fold on a full screen.
+  useEffect(() => {
+    scrollToBottom('smooth')
+  }, [isSending])
+
   // Re-anchor to bottom whenever the visible viewport's height changes (Safari's
   // address-bar chrome collapsing/expanding, or the keyboard). Without this, the
   // scroll position computed at one viewport size goes stale after a resize —
@@ -127,7 +158,11 @@ function AssistantContent() {
     setInput('')
     setIsSending(true)
 
-    await addMessageMutation.mutateAsync({ role: 'user', text })
+    // Fire-and-forget, deliberately NOT awaited: the optimistic cache update
+    // above has already rendered the bubble, so blocking the n8n request on
+    // this write would only add its latency to the reply time for no visible
+    // benefit. Failures roll the bubble back via onError.
+    addMessageMutation.mutate({ role: 'user', text })
 
     try {
       const response = await fetch('https://n1sense.app.n8n.cloud/webhook/assistant-router', {
@@ -149,14 +184,12 @@ function AssistantContent() {
 
   return (
     <PageBackground>
-      {/* Standard flex-column chat layout: header fixed on top (matches every
-          other page). Messages scroll in their own inner container. Input is
-          now also true position:fixed (see comment further down) — anchored
-          to the viewport bottom exactly like TabBar, using the same
-          TABBAR_CLEARANCE constant, instead of depending on h-dvh math.
-          The wrapper itself now uses --app-height instead of h-dvh for the
-          same reason — see useAppHeight.ts. */}
-      <div className="flex flex-col" style={{ height: 'var(--app-height, 100dvh)' }}>
+      {/* Back to plain `h-dvh`. The `--app-height` custom property this used
+          to read (JS-measured visualViewport.height, written onto <html> by
+          useAppHeight) reported SHORT of the real screen in iOS standalone
+          mode, and every layer keyed off it inherited that shortfall — that
+          was the bottom black strip. The hook and the property are gone. */}
+      <div className="flex h-dvh flex-col">
         <PageHeader title="Ассистент" />
 
         {messages.length > 0 && (
@@ -237,6 +270,30 @@ function AssistantContent() {
                   </div>
                 </div>
               ))
+            )}
+
+            {/* "Думает…" — shown only while waiting on the assistant's reply.
+                Lives outside the message list on purpose: it is transient UI,
+                not a row in chat_messages, so it must never be persisted or
+                survive a refetch. Sits after the last bubble so the existing
+                autoscroll-on-messages effect keeps it in view. */}
+            {isSending && (
+              <div className="flex justify-start">
+                <div
+                  className="flex items-center gap-2 rounded-2xl px-4 py-3 text-sm"
+                  style={{
+                    background: 'rgba(40,40,40,0.45)',
+                    backdropFilter: 'blur(18px)',
+                    WebkitBackdropFilter: 'blur(18px)',
+                    border: '1px solid rgba(255,255,255,0.10)',
+                    color: 'rgba(255,255,255,0.6)',
+                    borderBottomLeftRadius: '6px',
+                  }}
+                >
+                  <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/25 border-t-white/70" />
+                  Думает…
+                </div>
+              </div>
             )}
           </div>
         </div>
