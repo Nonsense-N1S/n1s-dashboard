@@ -227,7 +227,7 @@ function AssistantContent() {
         <div
           ref={scrollContainerRef}
           className="min-h-0 flex-1 overflow-y-auto px-4"
-          style={{ paddingTop: HEADER_CLEARANCE, paddingBottom: `calc(${TABBAR_CLEARANCE} + 56px + ${GAP_PX - 10}px)` }}
+          style={{ paddingTop: HEADER_CLEARANCE, paddingBottom: `calc(${TABBAR_CLEARANCE} + 56px + ${GAP_PX - 20}px)` }}
         >
           <div className="flex min-h-full flex-col justify-end space-y-4 pb-2">
             {isLoading ? (
