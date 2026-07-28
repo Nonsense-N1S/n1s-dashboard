@@ -218,11 +218,16 @@ function AssistantContent() {
 
         {/* Local scroll container — owns its own scroll, independent of window/body.
             Bottom padding clears the now-fixed input pill below: TABBAR_CLEARANCE
-            (input's own bottom offset) + its own height (~56px) + one gap. */}
+            (input's own bottom offset) + its own height (~56px) + a gap.
+            That last term is GAP_PX MINUS 10px, not the shared GAP_PX: the
+            standard 16px reads as too much air between the final bubble and the
+            input specifically. Written as an explicit subtraction so it stays
+            obvious this is a deliberate local deviation from the spacing scale
+            rather than a value that drifted out of sync with lib/layout. */}
         <div
           ref={scrollContainerRef}
           className="min-h-0 flex-1 overflow-y-auto px-4"
-          style={{ paddingTop: HEADER_CLEARANCE, paddingBottom: `calc(${TABBAR_CLEARANCE} + 56px + ${GAP_PX}px)` }}
+          style={{ paddingTop: HEADER_CLEARANCE, paddingBottom: `calc(${TABBAR_CLEARANCE} + 56px + ${GAP_PX - 10}px)` }}
         >
           <div className="flex min-h-full flex-col justify-end space-y-4 pb-2">
             {isLoading ? (
